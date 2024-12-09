@@ -31,12 +31,16 @@ export default class GameController extends cc.Component {
     private initialFruitsNodeChildsPosition: cc.Vec3[] = [];
     private currentFruitsNodeChildsPosition: cc.Vec3[] = [];
 
-    private moveDown = true;
+    private snapPoints: number[] = [-256.375, -128.627, -0.869, 126.889, 254.647, 382.405];
+    // private snapPoints: number[] = [382.405, 254.647, 126.889, -0.869, -128.627, -256.375];
+
+
+    private moveDown: boolean = null;
     // LIFE-CYCLE CALLBACKS:
     private rollConfig: GameConfig = {
         speed: 25,
         topPosition: 382.405,
-        bottomPosition: -256.375
+        bottomPosition: -384.133
     }
 
     // onLoad () {}
@@ -51,43 +55,109 @@ export default class GameController extends cc.Component {
             this.initialFruitsNodeChildsPosition[index] = this.fruitsNodeChilds[index].position;
         }
     }
-
-    onUpButtonClick() {
-        this.snapFruitsPosition();
-        this.currentGameState = GameState.RollingUp;
-        this.changeButtonState();
-    }
-    onDownButtonClick() {
-        this.snapFruitsPosition();
-        this.currentGameState = GameState.RollingDown;
-        this.changeButtonState();
+    resetPosition() {
+        for (let index = 0; index < this.snapPoints.length; index++) {
+            this.fruitsNodeChilds[index].position = cc.v3(0, this.snapPoints[index], 0);
+        }
     }
 
-    private snapPoints: number[] = [-256.375, -128.627, -0.869, 126.889, 254.647, 382.405];
+    private getNearestSnapPointDown(y: number): number {
+        // Filter snap points to include only those less than or equal to the current position
+        const validSnapPoints = this.snapPoints.filter(point => point <= y);
 
-    // Function to find the nearest snap point
-    private getNearestSnapPoint(y: number): number {
-        return this.snapPoints.reduce((prev, curr) =>
+        // If no valid snap points, default to the smallest snap point (move to the bottommost position)
+        if (validSnapPoints.length === 0) {
+            return Math.min(...this.snapPoints);
+        }
+
+        // Find the closest valid snap point
+        return validSnapPoints.reduce((prev, curr) =>
             Math.abs(curr - y) < Math.abs(prev - y) ? curr : prev
         );
     }
 
-    snapFruitsPosition(){
-        this.fruitsNodeChilds.forEach((node: cc.Node, index: number) => {
-            this.currentFruitsNodeChildsPosition[index] = node.position;
-            const nearestSnap = this.getNearestSnapPoint(node.position.y);
+    private getNearestSnapPointUp(y: number): number {
+        // Filter snap points to include only those greater than or equal to the current position
+        const validSnapPoints = this.snapPoints.filter(point => point >= y);
+    
+        // If no valid snap points, default to the largest snap point (move to the topmost position)
+        if (validSnapPoints.length === 0) {
+            return Math.max(...this.snapPoints);
+        }
+    
+        // Find the closest valid snap point
+        return validSnapPoints.reduce((prev, curr) =>
+            Math.abs(curr - y) < Math.abs(prev - y) ? curr : prev
+        );
+    }
+    
 
-            cc.tween(node)
-                // .to(0.1, { position: cc.v3(0, nearestSnap, 0) }, { easing: 'cubicOut' }) 
-                .to(0.1, { position: cc.v3(0, nearestSnap, 0) }) 
-                .start();
-        });
+    snapFruitsPosition() {
+        if (this.moveDown) {
+            this.fruitsNodeChilds.forEach((node: cc.Node, index: number) => {
+                this.currentFruitsNodeChildsPosition[index] = node.position;
 
-        // Log current positions for debugging
-        cc.log(this.currentFruitsNodeChildsPosition);
+                // Get the nearest snap point below or equal to the current position
+                const nearestSnap = this.getNearestSnapPointDown(node.position.y);
+
+                // Tween to the calculated position
+                cc.tween(node)
+                    // .to(0.1, { position: cc.v3(0, nearestSnap, 0) }, { easing: 'cubicOut' })
+                    .to(0.1, { position: cc.v3(0, nearestSnap, 0) })
+                    .start();
+            });
+        }
+
+        if (!this.moveDown) {
+            this.fruitsNodeChilds.forEach((node: cc.Node, index: number) => {
+                this.currentFruitsNodeChildsPosition[index] = node.position;
+
+                // Get the nearest snap point below or equal to the current position
+                const nearestSnap = this.getNearestSnapPointUp(node.position.y);
+
+                // Tween to the calculated position
+                cc.tween(node)
+                    // .to(0.1, { position: cc.v3(0, nearestSnap, 0) }, { easing: 'cubicOut' })
+                    .to(0.1, { position: cc.v3(0, nearestSnap, 0) })
+                    .start();
+            });
+        }
     }
 
+
+    onUpButtonClick() {
+        this.resetPosition();
+        this.currentGameState = GameState.Pause;
+        this.changeButtonState();
+        this.moveDown = false;
+        this.currentGameState = GameState.RollingUp;
+        this.changeButtonState();
+    }
+    onDownButtonClick() {
+        this.resetPosition();
+        this.currentGameState = GameState.Pause;
+        this.changeButtonState();
+        this.moveDown = true;
+        this.currentGameState = GameState.RollingDown;
+        this.changeButtonState();
+    }
+
+
+
     onPlayPauseButtonClick() {
+        if (this.currentGameState === GameState.Pause) {
+            if (this.moveDown) {
+                this.resetPosition();
+                this.currentGameState = GameState.RollingDown;
+                this.changeButtonState();
+            }
+            if (!this.moveDown) {
+                this.resetPosition();
+                this.currentGameState = GameState.RollingUp;
+                this.changeButtonState();
+            }
+            return;
+        }
         if (this.currentGameState === GameState.RollingDown || this.currentGameState === GameState.RollingUp) {
             this.snapFruitsPosition();
             // Update state
