@@ -9,5 +9,7 @@ export enum GameState {
 export type GameConfig = {
     speed: number,
     topPosition: number,
-    bottomPosition: number
+    bottomPosition: number,
+    lowerBound:number,
+    upperBound:number
 }

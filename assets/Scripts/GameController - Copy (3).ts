@@ -14,7 +14,6 @@ const { ccclass, property } = cc._decorator;
 export default class GameController extends cc.Component {
 
     @property(cc.Node) fruitsNode: cc.Node = null;
-    @property(cc.Label) resultLabel: cc.Label = null;
     @property(cc.Button) playButton: cc.Button = null;
     @property(cc.Button) pauseButton: cc.Button = null;
     @property(cc.Button) directionButton: cc.Button = null;
@@ -34,24 +33,18 @@ export default class GameController extends cc.Component {
     private initialFruitsNodeChildsPosition: cc.Vec3[] = [];
     private currentFruitsNodeChildsPosition: number[] = [];
 
-    private visibleNodes: cc.Node[] = [];
-
     private snapPoints: number[] = [-254, -127, -0, 127, 254, 381];
 
 
     private moveDown: boolean = null;
 
     private isPauseStarted: boolean = false;
-    
+    // LIFE-CYCLE CALLBACKS:
     private rollConfig: GameConfig = {
         speed: 25,
         topPosition: 381,
-        bottomPosition: -381,
-        lowerBound: -127,
-        upperBound: 127
+        bottomPosition: -381
     }
-
-    //function to shuffle the fruit sprites
     private ranodmizeFruits() {
         // Fisher-Yates Sorting Algorithm
         const shuffle = (array: cc.SpriteFrame[]) => {
@@ -98,16 +91,15 @@ export default class GameController extends cc.Component {
             this.initialFruitsNodeChildsPosition[index] = this.fruitsNodeChilds[index].position;
         }
     }
-
-    //reset the value of visibleNodes array and also position of fruits
     resetPosition() {
-        this.visibleNodes = [];
         for (let index = 0; index < this.snapPoints.length; index++) {
             this.fruitsNodeChilds[index].position = cc.v3(0, this.snapPoints[index], 0);
         }
     }
 
-    //start roll up event
+
+
+
     onUpButtonClick() {
         this.resetPosition();
         this.currentGameState = GameState.Pause;
@@ -116,8 +108,6 @@ export default class GameController extends cc.Component {
         this.currentGameState = GameState.RollingUp;
         this.changeButtonState();
     }
-
-    //start roll down event
     onDownButtonClick() {
         this.resetPosition();
         this.currentGameState = GameState.Pause;
@@ -128,7 +118,7 @@ export default class GameController extends cc.Component {
     }
 
 
-    //function to pause or contunute the roll 
+
     onPlayPauseButtonClick() {
         if (this.currentGameState === GameState.Pause) {
             if (this.moveDown) {
@@ -149,11 +139,10 @@ export default class GameController extends cc.Component {
             this.currentGameState = GameState.Pause;
             this.changeButtonState();
             this.isPauseStarted = true;
-            this.onGamePause();
         }
     }
 
-    //not currently used (used for game start/stop)
+
     onStartStopClick() {
         if (this.currentGameState === GameState.RollingDown) {
             this.currentGameState = GameState.End;
@@ -169,7 +158,6 @@ export default class GameController extends cc.Component {
         //     .start();
     }
 
-    //change button state during different gamestate
     changeButtonState() {
         if (this.currentGameState === GameState.Start || this.currentGameState === GameState.End) {
             this.startStopButton.spriteFrame = this.startButtonSprite;
@@ -183,7 +171,6 @@ export default class GameController extends cc.Component {
         }
     }
 
-    //roll the reel down
     startRollingDown(dt) {
         for (let i = 0; i < this.fruitsNodeChilds.length; i++) {
             const value = this.fruitsNodeChilds[i];
@@ -207,7 +194,7 @@ export default class GameController extends cc.Component {
         }
     }
 
-    //roll the reel up
+
     startRollingUp(dt) {
         for (let i = 0; i < this.fruitsNodeChilds.length; i++) {
             const value = this.fruitsNodeChilds[i];
@@ -231,13 +218,13 @@ export default class GameController extends cc.Component {
         }
     }
 
-    //executed when game is paused
-    onGamePause() {
+
+    onGamePause(dt) {
+
         if (this.isPauseStarted) {
             this.fruitsNodeChilds.forEach((element, index) => {
                 this.currentFruitsNodeChildsPosition[index] = element.position.y;
             });
-            let completedAnimations = 0;
             this.currentFruitsNodeChildsPosition.sort((a, b) => a - b);
             cc.log(this.currentFruitsNodeChildsPosition);
             cc.log(this.snapPoints);
@@ -251,78 +238,26 @@ export default class GameController extends cc.Component {
                 cc.tween(node)
                     // .to(0.1, { position: cc.v3(0, nearestSnap, 0) }, { easing: 'cubicOut' })
                     .to(0.09, { position: cc.v3(0, nearestSnap, 0) })
-                    .call(() => {
-                        if (node.position.y >= this.rollConfig.lowerBound && node.position.y <= this.rollConfig.upperBound) {
-                            this.visibleNodes.push(node);  // Add to visible nodes if in range
-                        }
-                        completedAnimations++;
-                        if (completedAnimations === this.fruitsNodeChilds.length) {
-                            cc.log('Visible nodes:', this.visibleNodes);
-                            this.calculateResult();
-                        }
-                    })
                     .start();
             });
+            const visibleNodes = this.getVisibleNodes();
+            cc.log('Visible nodes:', visibleNodes);
             this.isPauseStarted = false;
         }
     }
-    //function to get result / name of fruits visible
-    calculateResult() {
-        const visibleNodeName = this.getTextureFileNamesOfVisibleNodes();
-        this.resultLabel.string="Result: \n"+visibleNodeName[2]+ "\n"+visibleNodeName[1]+"\n"+visibleNodeName[0];
-        cc.log("Name: " + visibleNodeName);
-    }
-    // Function to get the texture URLs of the children of visible nodes
-    getTextureFileNamesOfVisibleNodes() {
-        const textureFileNames: string[] = [];
-    
-        // Loop through each visible node
-        this.visibleNodes.forEach((node: cc.Node) => {
-            if (node.children.length > 0) {
-                const childNode = node.children[0];  // Assuming the first child has the sprite component
-                const sprite = childNode.getComponent(cc.Sprite);
-    
-                if (sprite && sprite.spriteFrame) {
-                    // Get the texture from the sprite frame
-                    const texture = sprite.spriteFrame.getTexture();
-                    if (texture) {
-                        // Get the internal path (e.g., assets/others/native/48/487777f7-a8f7-4bea-b78e-bc544cea9051.png)
-                        const fullPath = texture.nativeUrl;
-    
-                        // Extract the file name from the full path
-                        const fileName = fullPath.substring(fullPath.lastIndexOf('/') + 1);
-                        let actualName: string;
-                        if(fileName=="487777f7-a8f7-4bea-b78e-bc544cea9051.png"){
-                            actualName = "Apple";
-                        }
-                        if(fileName=="6cdb2f24-dacd-42f3-9d98-c02a4a2d1df3.png"){
-                            actualName = "Pineapple";
-                        }
-                        if(fileName=="d2b2d2ce-88cb-4a8a-8182-743d513646a5.png"){
-                            actualName = "Cherry";
-                        }
-
-    
-                        // Add the file name (e.g., 487777f7-a8f7-4bea-b78e-bc544cea9051.png)
-                        textureFileNames.push(actualName);
-                    }
-                }
-            }
-        });
-    
-        return textureFileNames;  // Return the array of texture file names
-    }
-    
-
     // Function to check which nodes are in the visible zone
     getVisibleNodes(): cc.Node[] {
         const visibleNodes: cc.Node[] = [];
+
+        // Define the visible range
+        const lowerBound = -127;
+        const upperBound = 127;
 
         // Loop through the fruits nodes and check their Y position
         this.fruitsNodeChilds.forEach((node: cc.Node) => {
             cc.log(node.position.y);
             // Check if the node's Y position is within the visible range
-            if (node.position.y >= this.rollConfig.lowerBound && node.position.y <= this.rollConfig.upperBound) {
+            if (node.position.y >= lowerBound && node.position.y <= upperBound) {
                 visibleNodes.push(node);  // Add to visible nodes if in range
             }
         });
@@ -338,10 +273,10 @@ export default class GameController extends cc.Component {
         if (this.currentGameState === GameState.RollingUp) {
             this.startRollingUp(dt);
         }
-        // if (this.currentGameState === GameState.Pause) {
+        if (this.currentGameState === GameState.Pause) {
 
-        //     this.onGamePause(dt);
-        // }
+            this.onGamePause(dt);
+        }
         if (this.currentGameState === GameState.End) {
             this.currentGameState = GameState.Start;
             this.changeButtonState();
