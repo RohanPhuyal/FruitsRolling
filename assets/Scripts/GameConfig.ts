@@ -6,6 +6,7 @@ export enum GameState {
     Pause=4,
     End=5
 }
+
 export type GameConfig = {
     speed: number,
     topPosition: number,
