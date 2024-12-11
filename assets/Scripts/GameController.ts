@@ -102,6 +102,7 @@ export default class GameController extends cc.Component {
     //reset the value of visibleNodes array and also position of fruits
     resetPosition() {
         this.visibleNodes = [];
+        this.resultLabel.string="Result:                         ";
         for (let index = 0; index < this.snapPoints.length; index++) {
             this.fruitsNodeChilds[index].position = cc.v3(0, this.snapPoints[index], 0);
         }
@@ -269,7 +270,7 @@ export default class GameController extends cc.Component {
     //function to get result / name of fruits visible
     calculateResult() {
         const visibleNodeName = this.getTextureFileNamesOfVisibleNodes();
-        this.resultLabel.string="Result: \n"+visibleNodeName[2]+ "\n"+visibleNodeName[1]+"\n"+visibleNodeName[0];
+        this.resultLabel.string="Result: "+visibleNodeName[2]+ ", "+visibleNodeName[1]+", "+visibleNodeName[0];
         cc.log("Name: " + visibleNodeName);
     }
     // Function to get the texture URLs of the children of visible nodes
