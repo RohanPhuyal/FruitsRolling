@@ -32,7 +32,7 @@ export default class GameController extends cc.Component {
 
 
     private rollConfig: GameConfig = {
-        speed: 250,
+        speed: 2000,
         topPosition: 381,
         bottomPosition: -381,
         lowerBound: -127,

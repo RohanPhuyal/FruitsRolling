@@ -5,6 +5,7 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/manual/en/scripting/life-cycle-callbacks.html
 
+import GameAudio from "./GameAudio";
 import { GameState } from "./GameConfig";
 import GameController from "./GameController";
 import GameStateManager from "./GameStateManager";
@@ -26,6 +27,19 @@ export default class GameUIController extends cc.Component {
     @property(cc.SpriteFrame) fruitSprites: cc.SpriteFrame[] = [];
 
 
+    @property(cc.Button) backgroundAudioMuteButton: cc.Button = null;
+    @property(cc.SpriteFrame) backgroundAudioMuteSprite: cc.SpriteFrame = null;
+    @property(cc.SpriteFrame) backgroundAudioUnmuteSprite: cc.SpriteFrame = null;
+    private backgroundAudioMuteUnmute: cc.Sprite = null;
+
+    @property(cc.Button) otherAudioMuteButton: cc.Button = null;
+    private otherAudioMuteUnmute: cc.Sprite = null;
+
+    @property(cc.Button) settingsButton: cc.Button = null;
+    @property(cc.Node) settingsPanel: cc.Node = null;
+    @property(cc.Node) blockInputLayer: cc.Node = null;
+
+
     //function to shuffle the fruit sprites
     private ranodmizeFruits() {
         // Fisher-Yates Sorting Algorithm
@@ -39,7 +53,7 @@ export default class GameUIController extends cc.Component {
 
         GameStateManager.shuffledValues = shuffle(GameStateManager.textureName);
         this.assignTexture(GameStateManager.shuffledValues);
-        
+
         // const shuffledValues = shuffle(this.fruitSprites);
 
         // GameController.fruitsNodeChilds[1].children[0].getComponent(cc.Sprite).spriteFrame = shuffledValues[0];
@@ -49,7 +63,7 @@ export default class GameUIController extends cc.Component {
         // GameController.fruitsNodeChilds[5].children[0].getComponent(cc.Sprite).spriteFrame = shuffledValues[1];
         // GameController.fruitsNodeChilds[0].children[0].getComponent(cc.Sprite).spriteFrame = shuffledValues[2];
     }
-    assignTexture(shuffledValues){
+    assignTexture(shuffledValues) {
         GameController.fruitsNodeChilds.forEach((node: cc.Node, index: number) => {
             cc.resources.load(`Texture/${shuffledValues[index]}`, cc.Texture2D, (err, texture: cc.Texture2D) => {
                 if (!err) {
@@ -61,7 +75,7 @@ export default class GameUIController extends cc.Component {
                 }
             });
         });
-         
+
     }
 
     onLoad() {
@@ -70,10 +84,21 @@ export default class GameUIController extends cc.Component {
         }
 
         this.ranodmizeFruits();
+        // Add a touch event listener to blockInputLayer
+        this.blockInputLayer.on(cc.Node.EventType.TOUCH_START, this.onBlockInputClick, this);
+
+        // Initially hide the blocking layer
+        this.blockInputLayer.active = false;
     }
     start() {
         this.playPauseButton = this.pauseButton.getComponentInChildren(cc.Sprite);
         this.playPauseButton.spriteFrame = this.pauseButtonSprite;
+
+        this.backgroundAudioMuteUnmute = this.backgroundAudioMuteButton.getComponentInChildren(cc.Sprite);
+        this.backgroundAudioMuteUnmute.spriteFrame = this.backgroundAudioUnmuteSprite;
+
+        this.otherAudioMuteUnmute = this.otherAudioMuteButton.getComponentInChildren(cc.Sprite);
+        this.otherAudioMuteUnmute.spriteFrame = this.backgroundAudioUnmuteSprite;
 
     }
 
@@ -122,6 +147,61 @@ export default class GameUIController extends cc.Component {
             GameStateManager.isPauseStarted = true;
             GameController.instance.onGamePause();
         }
+    }
+
+    onBackgroundMuteButtonClick() {
+        if (!GameAudio.isBackgroundSoundMuted) {
+            GameAudio.isBackgroundSoundMuted = true;
+            GameAudio.instance.muteBackgroundAudio();
+        }
+        else{
+            GameAudio.isBackgroundSoundMuted = false;
+            GameAudio.instance.muteBackgroundAudio();
+        }
+       
+    }
+    onOtherAudioMuteButtonClick() {
+        if (!GameAudio.isOtherSoundMuted) {
+            GameAudio.isOtherSoundMuted = true;
+            GameAudio.instance.muteOtherAudio();
+        }
+        else{
+            GameAudio.isOtherSoundMuted = false;
+            GameAudio.instance.muteOtherAudio();
+        }
+       
+    }
+
+    changeBackgroundAudioIcon() {
+        if (GameAudio.isBackgroundSoundMuted) {
+            this.backgroundAudioMuteUnmute.spriteFrame = this.backgroundAudioMuteSprite;
+        }
+        if (!GameAudio.isBackgroundSoundMuted) {
+            this.backgroundAudioMuteUnmute.spriteFrame = this.backgroundAudioUnmuteSprite;
+        }
+        
+    }
+    changeOtherAudioIcon(){
+        if (GameAudio.isOtherSoundMuted) {
+            this.otherAudioMuteUnmute.spriteFrame = this.backgroundAudioMuteSprite;
+        }
+        if (!GameAudio.isOtherSoundMuted) {
+            this.otherAudioMuteUnmute.spriteFrame = this.backgroundAudioUnmuteSprite;
+        }
+    }
+
+    onSettingsIconClick(){
+        if(this.settingsPanel.active){
+            this.settingsPanel.active=false;
+            this.blockInputLayer.active=false;
+        }else{
+            this.settingsPanel.active=true;
+            this.blockInputLayer.active=true;
+        }
+    }
+    onBlockInputClick(event: cc.Event) {
+        this.settingsPanel.active = false;
+        this.blockInputLayer.active = false;
     }
 
     //change button state during different gamestate
