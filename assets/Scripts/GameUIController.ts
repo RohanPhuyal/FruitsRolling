@@ -29,7 +29,7 @@ export default class GameUIController extends cc.Component {
     //function to shuffle the fruit sprites
     private ranodmizeFruits() {
         // Fisher-Yates Sorting Algorithm
-        const shuffle = (array: cc.SpriteFrame[]) => {
+        const shuffle = (array: String[]) => {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [array[i], array[j]] = [array[j], array[i]];
@@ -37,15 +37,31 @@ export default class GameUIController extends cc.Component {
             return array;
         };
 
-        const shuffledValues = shuffle(this.fruitSprites);
+        GameStateManager.shuffledValues = shuffle(GameStateManager.textureName);
+        this.assignTexture(GameStateManager.shuffledValues);
+        
+        // const shuffledValues = shuffle(this.fruitSprites);
 
-        GameController.fruitsNodeChilds[1].children[0].getComponent(cc.Sprite).spriteFrame = shuffledValues[0];
-        GameController.fruitsNodeChilds[2].children[0].getComponent(cc.Sprite).spriteFrame = shuffledValues[1];
-        GameController.fruitsNodeChilds[3].children[0].getComponent(cc.Sprite).spriteFrame = shuffledValues[2];
-        GameController.fruitsNodeChilds[4].children[0].getComponent(cc.Sprite).spriteFrame = shuffledValues[0];
-        GameController.fruitsNodeChilds[5].children[0].getComponent(cc.Sprite).spriteFrame = shuffledValues[1];
-        GameController.fruitsNodeChilds[0].children[0].getComponent(cc.Sprite).spriteFrame = shuffledValues[2];
-
+        // GameController.fruitsNodeChilds[1].children[0].getComponent(cc.Sprite).spriteFrame = shuffledValues[0];
+        // GameController.fruitsNodeChilds[2].children[0].getComponent(cc.Sprite).spriteFrame = shuffledValues[1];
+        // GameController.fruitsNodeChilds[3].children[0].getComponent(cc.Sprite).spriteFrame = shuffledValues[2];
+        // GameController.fruitsNodeChilds[4].children[0].getComponent(cc.Sprite).spriteFrame = shuffledValues[0];
+        // GameController.fruitsNodeChilds[5].children[0].getComponent(cc.Sprite).spriteFrame = shuffledValues[1];
+        // GameController.fruitsNodeChilds[0].children[0].getComponent(cc.Sprite).spriteFrame = shuffledValues[2];
+    }
+    assignTexture(shuffledValues){
+        GameController.fruitsNodeChilds.forEach((node: cc.Node, index: number) => {
+            cc.resources.load(`Texture/${shuffledValues[index]}`, cc.Texture2D, (err, texture: cc.Texture2D) => {
+                if (!err) {
+                    const sprite = node.children[0].getComponent(cc.Sprite);
+                    const newSpriteFrame = new cc.SpriteFrame(texture); // Create new SpriteFrame with the loaded texture
+                    sprite.spriteFrame = newSpriteFrame; // Assign the new SpriteFrame to the sprite
+                } else {
+                    cc.log('Error loading texture:', err);
+                }
+            });
+        });
+         
     }
 
     onLoad() {

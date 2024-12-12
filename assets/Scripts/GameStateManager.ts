@@ -15,5 +15,8 @@ export default class GameStateManager extends cc.Component {
     public static currentGameState: GameState = GameState.Start;
     public static moveDown: boolean = null;
     public static isPauseStarted: boolean = false;
+    public static shuffledValues: String[] = [];
+
+    public static textureName = ["Cherry","Apple","Pineapple","Cherry","Apple","Pineapple"];
 
 }

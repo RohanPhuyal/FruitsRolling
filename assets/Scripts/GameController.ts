@@ -19,6 +19,7 @@ export default class GameController extends cc.Component {
 
     @property(cc.Node) fruitsNode: cc.Node = null;
     @property(cc.Label) resultLabel: cc.Label = null;
+    @property(cc.JsonAsset) gameData: cc.JsonAsset = null;
 
     public static fruitsNodeChilds = null;
     // private fruitsNodeChilds = null;
@@ -52,6 +53,7 @@ export default class GameController extends cc.Component {
 
     //reset the value of visibleNodes array and also position of fruits
     resetPosition() {
+        GameUIController.instance.assignTexture(GameStateManager.shuffledValues);
         this.visibleNodes = [];
         this.resultLabel.string = "Result:                         ";
         for (let index = 0; index < this.snapPoints.length; index++) {
@@ -107,6 +109,7 @@ export default class GameController extends cc.Component {
         }
     }
 
+
     //executed when game is paused
     onGamePause() {
         if (GameStateManager.isPauseStarted) {
@@ -119,7 +122,21 @@ export default class GameController extends cc.Component {
             cc.log(this.snapPoints);
             const result = this.currentFruitsNodeChildsPosition.map((value, index) => Math.abs(value - (this.snapPoints[index] || 0)));
             cc.log(result);
+            // GameStateManager.shuffledValues=(this.gameData.json.data.symbols);
             GameController.fruitsNodeChilds.forEach((node: cc.Node, index: number) => {
+                const symbols = this.gameData.json.data.symbols[index];
+                cc.resources.load(`Texture/${symbols}`, cc.Texture2D, (err, texture: cc.Texture2D) => {
+                    if (!err) {
+                        const sprite = node.children[0].getComponent(cc.Sprite);
+                        const newSpriteFrame = new cc.SpriteFrame(texture); // Create new SpriteFrame with the loaded texture
+                        sprite.spriteFrame = newSpriteFrame; // Assign the new SpriteFrame to the sprite
+                    } else {
+                        cc.log('Error loading texture:', err);
+                    }
+                });
+
+                // node.children[0].getComponent(cc.Sprite).spriteFrame;
+
                 // Get the nearest snap point below or equal to the current position
                 const nearestSnap = result[index] + this.currentFruitsNodeChildsPosition[index];
 

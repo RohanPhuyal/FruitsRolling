@@ -78,10 +78,10 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 65
+        "__id__": 67
       },
       {
-        "__id__": 66
+        "__id__": 68
       }
     ],
     "_prefab": null,
@@ -270,6 +270,12 @@
       },
       {
         "__id__": 64
+      },
+      {
+        "__id__": 65
+      },
+      {
+        "__id__": 66
       }
     ],
     "_prefab": null,
@@ -3129,6 +3135,9 @@
     "resultLabel": {
       "__id__": 62
     },
+    "gameData": {
+      "__uuid__": "65430aa9-78d1-4b7c-b302-f4694974ba48"
+    },
     "_id": "30J31L1XpC86h88eDhltpt"
   },
   {
@@ -3160,6 +3169,35 @@
       }
     ],
     "_id": "93dzEpqtNJNpKPT9tqpaId"
+  },
+  {
+    "__type__": "cc.AudioSource",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 5
+    },
+    "_enabled": false,
+    "_clip": {
+      "__uuid__": "80b0954a-f713-4132-a9a4-0d8b8d32af9f"
+    },
+    "_volume": 1,
+    "_mute": false,
+    "_loop": true,
+    "_firstlyEnabled": true,
+    "playOnLoad": true,
+    "preload": false,
+    "_id": "237oOy+KhE5buCGIgpRzB/"
+  },
+  {
+    "__type__": "d24c3hNaztNqKkoA5A6eBEo",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 5
+    },
+    "_enabled": true,
+    "_id": "d7MW+QvEpIG6ZZWacefPmh"
   },
   {
     "__type__": "cc.Canvas",
