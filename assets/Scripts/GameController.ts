@@ -32,7 +32,7 @@ export default class GameController extends cc.Component {
 
 
     private rollConfig: GameConfig = {
-        speed: 25,
+        speed: 250,
         topPosition: 381,
         bottomPosition: -381,
         lowerBound: -127,
@@ -66,7 +66,7 @@ export default class GameController extends cc.Component {
         for (let i = 0; i < GameController.fruitsNodeChilds.length; i++) {
             const value = GameController.fruitsNodeChilds[i];
 
-            value.position = value.position.add(cc.v3(0, -this.rollConfig.speed, 0));
+            value.position = value.position.add(cc.v3(0, -this.rollConfig.speed*dt, 0));
 
             // Check if the node has reached the bottom
             if (value.position.y <= this.rollConfig.bottomPosition) {
@@ -90,7 +90,7 @@ export default class GameController extends cc.Component {
         for (let i = 0; i < GameController.fruitsNodeChilds.length; i++) {
             const value = GameController.fruitsNodeChilds[i];
 
-            value.position = value.position.add(cc.v3(0, this.rollConfig.speed, 0));
+            value.position = value.position.add(cc.v3(0, this.rollConfig.speed*dt, 0));
 
             // Check if the node has reached or passed the top position
             if (value.position.y >= this.rollConfig.topPosition) {

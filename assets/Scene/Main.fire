@@ -3185,8 +3185,8 @@
     "_mute": false,
     "_loop": true,
     "_firstlyEnabled": true,
-    "playOnLoad": true,
-    "preload": false,
+    "playOnLoad": false,
+    "preload": true,
     "_id": "237oOy+KhE5buCGIgpRzB/"
   },
   {
